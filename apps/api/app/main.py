@@ -1,7 +1,29 @@
 from fastapi import FastAPI
 
-app = FastAPI()
+from app.api.routes.documents import router as documents_router
+from app.api.routes.health import router as health_router
+from app.api.routes.retrieval import router as retrieval_router
+from app.core.config import settings
+from app.core.database import Base, engine
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+# Import models so SQLAlchemy registers them before create_all()
+from app.models import chunk, document  # noqa: F401
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title=settings.APP_NAME,
+        version="0.1.0",
+        description="Personal Knowledge Memory API",
+    )
+
+    Base.metadata.create_all(bind=engine)
+
+    app.include_router(health_router)
+    app.include_router(documents_router)
+    app.include_router(retrieval_router)
+
+    return app
+
+
+app = create_app()
