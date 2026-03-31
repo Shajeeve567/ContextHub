@@ -76,12 +76,12 @@ class SemanticChunker:
     
     def get_embedding(self, sentences):
         only_combined_sentences = [i["combined_sentence"] for i in sentences]
-        return model.encode(only_combined_sentences, show_progress_bar=True)
+        return self.model.encode(only_combined_sentences, show_progress_bar=True)
         
     def calculate_cosine_distances(self, sentences):
         distances = []
 
-        embeddings = get_embedding(sentences)
+        embeddings = self.get_embedding(sentences)
         for i, sentence in enumerate(sentences):
             sentence["combined_sentence_embedding"] = embeddings[i]
         
