@@ -54,91 +54,79 @@ def split_text_into_chunks(
     return chunks
 
 
-# Implementing semantic chunking
-
-# Combined sentences to reduce noise and to capture more of the relationships
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-
-def combine_sentences(sentences, buffer_size=1):
-    for i in range(len(sentences)):
-        combined_sentence = ''
-
-        for j in range(i-buffer_size, i):
-            if j >= 0:
-                combined_sentence += sentences[j]["sentence"] + " "
-
-        combined_sentence += sentences[i]["sentence"]
-
-        for j in range(i+1, i + 1 + buffer_size):
-            if j < len(sentences):
-                combined_sentence += " " + sentences[j]["sentence"]
-
-    return sentences
-
-# Getting the embedding of combined sentences
-def get_embedding(sentences):
-    only_combined_sentences = [i["combined_sentence"] for i in sentences]
-    embeddings = model.encode(only_combined_sentences, show_progress_bar=True)
-    return embeddings
-
-# Finding the distances between groups of 3 
-def calculate_cosine_distances(sentences):
-    distances = []
-
-    embeddings = get_embedding(sentences)
-    for i, sentence in enumerate(sentences):
-        sentence["combined_sentence_embedding"] = embeddings[i]
+class SemanticChunker:
+    def __init__(self, model_name="all-MiniLM-L6-v2", threshold_percentile=95):
+        self.model = SentenceTransformer(model_name)
+        self.threshold_percentile = threshold_percentile 
     
-    for i in range(len(sentences) - 1):
-        embedding_current = sentences[i]["combined_sentence_embedding"]
-        embedding_next = sentences[i+1]["combined_sentence_embedding"]
+    def combine_sentences(self, sentences, buffer_size=1):
+        for i in range(len(sentences)):
+            combined_sentence = ''
 
-        similarity = cosine_similarity(embedding_current, embedding_next)
-        distance = 1 - similarity
+            for j in range(i-buffer_size, i):
+                if j >= 0:
+                    combined_sentence += sentences[j]["sentence"] + " "
 
-        distances.append(distance)
+            combined_sentence += sentences[i]["sentence"]
 
-        sentences[i]["distance_to_next"] = distance
+            for j in range(i+1, i + 1 + buffer_size):
+                if j < len(sentences):
+                    combined_sentence += " " + sentences[j]["sentence"]
+        return sentences
+    
+    def get_embedding(self, sentences):
+        only_combined_sentences = [i["combined_sentence"] for i in sentences]
+        return model.encode(only_combined_sentences, show_progress_bar=True)
+        
+    def calculate_cosine_distances(self, sentences):
+        distances = []
 
-    return distances, sentences
+        embeddings = get_embedding(sentences)
+        for i, sentence in enumerate(sentences):
+            sentence["combined_sentence_embedding"] = embeddings[i]
+        
+        for i in range(len(sentences) - 1):
+            embedding_current = sentences[i]["combined_sentence_embedding"]
+            embedding_next = sentences[i+1]["combined_sentence_embedding"]
 
-def create_chunks(sentences, distances):
-    breakpoint_distance_threshold = np.percentile(distances, 95)
+            similarity = cosine_similarity(embedding_current, embedding_next)
+            distance = 1 - similarity
 
-    # storing the index of distances larger than threshold
-    indices_above_thresh = [i for i, x in enumerate(distances) if x > breakpoint_distance_threshold]
+            distances.append(distance)
 
-    start_index = 0
-    chunks = []
+            sentences[i]["distance_to_next"] = distance
 
+        return distances, sentences
+    
+    def create_chunks(self, sentences, distances):
+        breakpoint_distance_threshold = np.percentile(distances, self.threshold_percentile)
 
-    for index in indices_above_thresh:
-        end_index = index
+        # storing the index of distances larger than threshold
+        indices_above_thresh = [i for i, x in enumerate(distances) if x > breakpoint_distance_threshold]
 
-        group = sentences[start_index:end_index + 1]
-        combined_text = " ".join(d["sentence"] for d in group)
-        chunks.append(combined_text)
+        start_index = 0
+        chunks = []
+        for index in indices_above_thresh:
+            end_index = index
 
-        start_index += 1
+            group = sentences[start_index:end_index + 1]
+            combined_text = " ".join(d["sentence"] for d in group)
+            chunks.append(combined_text)
 
-    if(start_index < len(sentences)):
-        combined_text = ' '.join([d['sentence'] for d in sentences[start_index:]])
-        chunks.append(combined_text)
+            start_index += 1
 
-    return chunks
+        if(start_index < len(sentences)):
+            combined_text = ' '.join([d['sentence'] for d in sentences[start_index:]])
+            chunks.append(combined_text)
 
+        return chunks
+    
+    def semantic_chunking(self, text: str):
+        single_sentences_list = re.split(r'(?<=[.?!])\s', text)
+        sentences = [
+            {'sentence': x, 'index': i} for i, x in enumerate(single_sentences_list)
+        ]
+        sentences = self.combine_sentences(sentences=sentences)
+        distances, sentences = self.calculate_cosine_distances(sentences)
 
-def semantic_chunking(text: str):
-    single_sentences_list = re.split(r'(?<=[.?!])\s', text)
-    sentences = [
-        {'sentence': x, 'index': i} for i, x in enumerate(single_sentences_list)
-    ]
-    sentences = combine_sentences(sentences=sentences)
-    distances, sentences = calculate_cosine_distances(sentences)
-
-    chunks = create_chunks(sentences, distances)
-
-    return chunks
-
-
+        return self.create_chunks(sentences, distances)
