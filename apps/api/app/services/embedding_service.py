@@ -1,38 +1,31 @@
-import hashlib
-import math
-import re
 from typing import List
-
-# Starter-only embedding approach:
-# This is NOT a true semantic embedding model.
-# It gives you a deterministic vector so the architecture works now.
-# Later you can replace this file with a real embedding provider.
-
-VECTOR_SIZE = 256
+from embedding_models import embedding_model
+from langchain_core.embeddings import Embeddings
+import numpy as np
 
 
-def _tokenize(text: str) -> List[str]:
-    return re.findall(r"\b\w+\b", text.lower())
+class STMEmbedding(Embeddings):
+    def __init__(
+            self,
+            normalize: bool = True,
+            batch_size: int = 32
+    ):
+        self.model = embedding_model
+        self.normalize = normalize
+        self.batch_size = batch_size
 
+    def embed_texts(self, texts: List[str]):
+        return self.model.encode(
+            texts,
+            batch_size=self.batch_size,
+            convert_to_numpy=True,
+            show_progress_bar=True,
+            normalize_embeddings=self.normalize
+        ).astype(np.float32).tolist()
 
-def embed_text(text: str, dimensions: int = VECTOR_SIZE) -> List[float]:
-    vector = [0.0] * dimensions
-    tokens = _tokenize(text)
-
-    if not tokens:
-        return vector
-
-    for token in tokens:
-        digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
-
-        bucket = int(digest[:8], 16) % dimensions
-        sign = -1.0 if int(digest[8:10], 16) % 2 else 1.0
-
-        vector[bucket] += sign
-
-    norm = math.sqrt(sum(value * value for value in vector)) or 1.0
-    return [value / norm for value in vector]
-
-
-def embed_texts(texts: List[str], dimensions: int = VECTOR_SIZE) -> List[List[float]]:
-    return [embed_text(text, dimensions=dimensions) for text in texts]
+    def embed_query(self, text: str) -> List[float]:
+        return self.model.encode(
+            text,
+            convert_to_numpy=True,
+            normalize_embeddings=self.normalize,
+        ).astype(np.float32).tolist()

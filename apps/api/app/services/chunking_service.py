@@ -5,6 +5,7 @@ from app.utils.text import estimate_token_count, sanitize_text
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+from embedding_models import embedding_model
 
 def split_text_into_chunks(
     text: str,
@@ -56,7 +57,7 @@ def split_text_into_chunks(
 
 class SemanticChunker:
     def __init__(self, model_name="all-MiniLM-L6-v2", threshold_percentile=95):
-        self.model = SentenceTransformer(model_name)
+        self.model = embedding_model
         self.threshold_percentile = threshold_percentile 
     
     def combine_sentences(self, sentences, buffer_size=1):
