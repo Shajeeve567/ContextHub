@@ -92,7 +92,7 @@ class SemanticChunker:
             embedding_current = sentences[i]["combined_sentence_embedding"]
             embedding_next = sentences[i+1]["combined_sentence_embedding"]
 
-            similarity = cosine_similarity(embedding_current, embedding_next)
+            similarity = cosine_similarity(embedding_current, embedding_next)[0][0]
             distance = 1 - similarity
 
             distances.append(distance)
