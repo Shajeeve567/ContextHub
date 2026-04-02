@@ -72,6 +72,9 @@ class SemanticChunker:
             for j in range(i+1, i + 1 + buffer_size):
                 if j < len(sentences):
                     combined_sentence += " " + sentences[j]["sentence"]
+        
+            sentences[i]["combined_sentence"] = combined_sentence
+
         return sentences
     
     def get_embedding(self, sentences):
