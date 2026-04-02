@@ -3,19 +3,25 @@ from sqlalchemy.orm import Session
 from app.models.document import Document
 from app.repositories.chunk_repository import replace_chunks_for_document
 from app.repositories.document_repository import update_document_status
-from app.services.chunking_service import split_text_into_chunks
-from app.services.embedding_service import embed_texts
+# from app.services.chunking_service import split_text_into_chunks, SemanticChunker
+from app.services.chunking_service import SemanticChunker
+# from app.services.embedding_service import embed_texts, STMEmbedding
+from app.services.embedding_service import STMEmbedding
 
 
 def process_document(db: Session, document: Document):
-    chunk_dicts = split_text_into_chunks(document.raw_content)
+    # chunk_dicts = split_text_into_chunks(document.raw_content)
+    chunker = SemanticChunker()
+    embedder = STMEmbedding()
+
+    chunk_dicts = chunker.semantic_chunking(document.raw_content)
 
     if not chunk_dicts:
         update_document_status(db, document, "processed")
         return []
 
     chunk_texts = [chunk["chunk_text"] for chunk in chunk_dicts]
-    embeddings = embed_texts(chunk_texts)
+    embeddings = embedder.embed_texts(chunk_texts)
 
     payloads = []
     for chunk_dict, embedding in zip(chunk_dicts, embeddings):

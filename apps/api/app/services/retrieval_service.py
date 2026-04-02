@@ -3,7 +3,8 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from app.repositories.chunk_repository import get_chunks_for_user
-from app.services.embedding_service import embed_text
+# from app.services.embedding_service import embed_text
+from app.services.embedding_service import STMEmbedding
 
 
 def cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
@@ -13,7 +14,10 @@ def cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
 
 
 def search_relevant_chunks(db: Session, user_id: str, question: str, top_k: int = 5) -> List[dict]:
-    query_embedding = embed_text(question)
+
+    embedding = STMEmbedding()
+
+    query_embedding = embedding.embed_query(question)
     chunks = get_chunks_for_user(db, user_id)
 
     scored_results: List[dict] = []

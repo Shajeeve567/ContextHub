@@ -1,5 +1,5 @@
 from typing import List
-from embedding_models import embedding_model
+from app.services.embedding_models import embedding_model
 from langchain_core.embeddings import Embeddings
 import numpy as np
 
