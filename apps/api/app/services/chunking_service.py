@@ -130,3 +130,5 @@ class SemanticChunker:
         distances, sentences = self.calculate_cosine_distances(sentences)
 
         return self.create_chunks(sentences, distances)
+
+
