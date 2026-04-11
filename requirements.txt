@@ -12,3 +12,4 @@ numpy
 sentence-transformers
 langchain-openai
 asyncpg
+psycopg2
