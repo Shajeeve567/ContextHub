@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -25,6 +25,11 @@ class DocumentResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    # file fields — all optional since manual_note documents won't have them
+    file_name: Optional[str] = None
+    file_size: Optional[int] = None
+    mime_type: Optional[str] = None
+    file_path: Optional[str] = None
 
 class DocumentProcessResponse(BaseModel):
     document_id: str
