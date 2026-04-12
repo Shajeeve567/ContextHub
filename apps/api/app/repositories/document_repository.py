@@ -20,17 +20,17 @@ def create_document(db: Session, payload: DocumentCreate) -> Document:
     return document
 
 
-def create_document_from_files(db: Session, payload: DocumentCreateFromFile) -> Document:
+def create_document_from_files(db: Session, user_id, title, raw_content, file_name, file_size, mime_type, file_path) -> Document:
     document = Document(
-        user_id=payload.user_id,
-        title=payload.title,
-        raw_content=payload.raw_content,
+        user_id=user_id,
+        title=title,
+        raw_content=raw_content,
         source_type="pdf_upload",
         status="pending",
-        file_name=payload.file_name,
-        file_size=payload.file_size,
-        mime_type=payload.mime_type,
-        file_path=payload.file_path,
+        file_name=file_name,
+        file_size=file_size,
+        mime_type=mime_type,
+        file_path=file_path,
     )
     db.add(document)
     db.commit()
