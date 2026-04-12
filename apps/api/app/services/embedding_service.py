@@ -14,7 +14,7 @@ class STMEmbedding(Embeddings):
         self.normalize = normalize
         self.batch_size = batch_size
 
-    def embed_texts(self, texts: List[str]):
+    def embed_documents(self, texts: List[str]):
         return self.model.encode(
             texts,
             batch_size=self.batch_size,

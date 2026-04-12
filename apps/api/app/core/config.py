@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     )
 
     APP_NAME: str = "Personal Knowledge Memory API"
-    OPENAI_API_KEY: SecretStr
-    MODEL_NAME: str = "meta-llama/llama-3.1-8b-instruct"
+    OPENROUTER_API_KEY: SecretStr
+    MODEL_NAME: str = "openrouter/free"
     DATABASE_URL: str
 
 
