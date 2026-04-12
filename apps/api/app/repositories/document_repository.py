@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from app.models.document import Document
-from app.schemas.document import DocumentCreate
+from app.schemas.document import DocumentCreate, DocumentCreateFromFile
 
 
 def create_document(db: Session, payload: DocumentCreate) -> Document:
@@ -13,6 +13,24 @@ def create_document(db: Session, payload: DocumentCreate) -> Document:
         raw_content=payload.raw_content,
         source_type=payload.source_type,
         status="pending",
+    )
+    db.add(document)
+    db.commit()
+    db.refresh(document)
+    return document
+
+
+def create_document_from_files(db: Session, payload: DocumentCreateFromFile) -> Document:
+    document = Document(
+        user_id=payload.user_id,
+        title=payload.title,
+        raw_content=payload.raw_content,
+        source_type="pdf_upload",
+        status="pending",
+        file_name=payload.file_name,
+        file_size=payload.file_size,
+        mime_type=payload.mime_type,
+        file_path=payload.file_path,
     )
     db.add(document)
     db.commit()

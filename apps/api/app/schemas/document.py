@@ -9,6 +9,9 @@ class DocumentCreate(BaseModel):
     raw_content: str = Field(..., min_length=1)
     source_type: str = Field(default="manual_note", min_length=1, max_length=50)
 
+class DocumentCreateFromFile(BaseModel):
+    user_id: str = Field(..., min_length=1)
+    title: str = Field(..., min_length=1, max_length=255)
 
 class DocumentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)

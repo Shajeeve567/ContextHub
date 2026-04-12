@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, String, Text
+from sqlalchemy import Column, DateTime, String, Text, Integer
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -23,6 +23,13 @@ class Document(Base):
 
     created_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+
+    # File data
+    file_name = Column(String(255), nullable=True)        # original filename
+    file_size = Column(Integer, nullable=True)            # bytes
+    mime_type = Column(String(100), nullable=True)        # application/pdf
+    file_path = Column(String(500), nullable=True)        # where the file is stored on disk/cloud
 
     chunks = relationship(
         "Chunk",

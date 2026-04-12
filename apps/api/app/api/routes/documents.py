@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -9,8 +9,9 @@ from app.repositories.document_repository import (
     get_document_by_id,
     list_documents_for_user,
 )
-from app.schemas.document import DocumentCreate, DocumentProcessResponse, DocumentResponse
+from app.schemas.document import DocumentCreate, DocumentProcessResponse, DocumentResponse, DocumentCreateFromFile
 from app.services.ingestion_service import process_document
+from app.services.file_service import ingest_pdf
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -18,6 +19,18 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 @router.post("", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
 def create_document_endpoint(payload: DocumentCreate, db: Session = Depends(get_db)):
     document = create_document(db, payload)
+    return document
+
+@router.post("/upload-pdf", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
+def upload_pdf_endpoint(payload: 
+    DocumentCreateFromFile,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+
+    document = ingest_pdf(db=db, user_id=payload.user_id, title=payload.title, file=file)
     return document
 
 
