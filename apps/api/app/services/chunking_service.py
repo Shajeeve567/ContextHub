@@ -2,14 +2,13 @@ from typing import List
 import re
 from app.core.config import settings
 from app.utils.text import estimate_token_count, sanitize_text
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from app.core.embedding_models import embedding_model
 
 
 class SemanticChunker:
-    def __init__(self, model_name="all-MiniLM-L6-v2", threshold_percentile=95):
+    def __init__(self, threshold_percentile=95):
         self.model = embedding_model
         self.threshold_percentile = threshold_percentile 
     

@@ -3,14 +3,11 @@ from sqlalchemy.orm import Session
 from app.models.document import Document
 from app.repositories.chunk_repository import replace_chunks_for_document
 from app.repositories.document_repository import update_document_status
-# from app.services.chunking_service import split_text_into_chunks, SemanticChunker
 from app.services.chunking_service import SemanticChunker
-# from app.services.embedding_service import embed_texts, STMEmbedding
 from app.services.embedding_service import STMEmbedding
 
 
 def process_document(db: Session, document: Document):
-    # chunk_dicts = split_text_into_chunks(document.raw_content)
     chunker = SemanticChunker()
     embedder = STMEmbedding()
 
