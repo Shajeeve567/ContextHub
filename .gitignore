@@ -3,4 +3,4 @@
 __pycache__/
 **/__pycache__/
 apps/api/app/schemas/__pycache__/
-apps/api/uploads/
+api/uploads/
