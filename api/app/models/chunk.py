@@ -1,9 +1,8 @@
 import uuid
 from datetime import datetime, timezone
-
+from pgvector.sqlalchemy import VECTOR
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
-
 from api.app.core.database import Base
 
 
@@ -25,7 +24,7 @@ class Chunk(Base):
 
     # Starter version: store embedding as JSON list
     # Later: replace with pgvector column
-    embedding = Column(JSON, nullable=False)
+    embedding = Column(VECTOR(384), nullable=False) 
 
     meta_json = Column(JSON, nullable=False, default=dict)
     created_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
