@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from api.app.api.routes.documents import router as documents_router
 from api.app.models import chunk
 from api.app.api.routes.health import router as health_router
-from api.app.api.routes.retrieval import router as retrieval_router
+from api.app.api.routes.document_retrieval import router as retrieval_router
 from api.app.core.config import settings
 from api.app.core.database import Base, engine
 
