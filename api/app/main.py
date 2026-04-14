@@ -5,9 +5,11 @@ from api.app.api.routes.health import router as health_router
 from api.app.api.routes.document_retrieval import router as retrieval_router
 from api.app.core.config import settings
 from api.app.core.database import Base, engine
+
 from api.app.models import document 
-from app.api.routes.projects import router as projects_router
-from app.api.routes.sessions import router as sessions_router
+
+from api.app.api.routes.projects import router as projects_router
+from api.app.api.routes.sessions import router as sessions_router
 
 
 def create_app() -> FastAPI:

@@ -1,7 +1,7 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from app.models.session import Session as SessionModel
-from app.schemas.session import SessionCreate, SessionComplete, SessionCheckpointUpdate
+from api.app.models.session import Session as SessionModel
+from api.app.schemas.session import SessionCreate, SessionComplete, SessionCheckpointUpdate
 
 
 def create_session(db: Session, payload: SessionCreate) -> SessionModel:

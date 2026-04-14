@@ -1,7 +1,7 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from app.models.project import Project
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
+from api.app.models.project import Project
+from api.app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
 
 
 def create_project(db: Session, payload: ProjectCreate) -> Project:

@@ -1,6 +1,6 @@
 from typing import List
-from app.core.database import get_db
-from app.repositories.session_repository import (
+from api.app.core.database import get_db
+from api.app.repositories.session_repository import (
     create_session,
     get_session_by_id,
     list_sessions_for_project,
@@ -9,8 +9,8 @@ from app.repositories.session_repository import (
     complete_session,
     mark_session_incomplete,
 )
-from app.repositories.project_repository import get_project_by_id
-from app.schemas.session import (
+from api.app.repositories.project_repository import get_project_by_id
+from api.app.schemas.session import (
     SessionCreate,
     SessionComplete,
     SessionCheckpointUpdate,

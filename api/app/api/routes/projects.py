@@ -1,13 +1,13 @@
 from typing import List
-from app.core.database import get_db
-from app.repositories.project_repository import (
+from api.app.core.database import get_db
+from api.app.repositories.project_repository import (
     create_project,
     get_project_by_id,
     list_projects_for_user,
     update_project,
     delete_project,
 )
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
+from api.app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
