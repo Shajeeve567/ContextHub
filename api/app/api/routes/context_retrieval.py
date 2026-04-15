@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from api.app.core.database import get_db
-from services.context_service import get_project_context
+from api.app.services.context_service import get_project_context
 from api.app.services.llm_service import generate_context_handoff
 
 

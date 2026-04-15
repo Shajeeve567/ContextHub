@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from app.repositories.project_repository import get_project_by_id
-from app.repositories.session_repository import (
+from api.app.repositories.project_repository import get_project_by_id
+from api.app.repositories.session_repository import (
     get_last_completed_session,
     get_incomplete_sessions,
 )

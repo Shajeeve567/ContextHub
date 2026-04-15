@@ -3,7 +3,6 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from api.app.repositories.chunk_repository import get_chunks_for_user
-# from app.services.embedding_service import embed_text
 from api.app.services.embedding_service import STMEmbedding
 
 
