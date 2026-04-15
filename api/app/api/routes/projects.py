@@ -9,57 +9,57 @@ from api.app.repositories.project_repository import (
 )
 from api.app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 
 @router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
-def create_new_project(payload: ProjectCreate, db: Session = Depends(get_db)):
-    return create_project(db, payload)
+async def create_new_project(payload: ProjectCreate, db: AsyncSession = Depends(get_db)):
+    return await create_project(db, payload)
 
 
 @router.get("", response_model=List[ProjectResponse])
-def list_projects(
+async def list_projects(
     user_id: str = Query(..., min_length=1),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    return list_projects_for_user(db, user_id)
+    return await list_projects_for_user(db, user_id)
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
-def get_project(
+async def get_project(
     project_id: str,
     user_id: str = Query(..., min_length=1),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    project = get_project_by_id(db, project_id=project_id, user_id=user_id)
+    project = await get_project_by_id(db, project_id=project_id, user_id=user_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
 
 
 @router.patch("/{project_id}", response_model=ProjectResponse)
-def update_existing_project(
+async def update_existing_project(
     project_id: str,
     payload: ProjectUpdate,
     user_id: str = Query(..., min_length=1),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    project = get_project_by_id(db, project_id=project_id, user_id=user_id)
+    project = await get_project_by_id(db, project_id=project_id, user_id=user_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    return update_project(db, project, payload)
+    return await update_project(db, project, payload)
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_existing_project(
+async def delete_existing_project(
     project_id: str,
     user_id: str = Query(..., min_length=1),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    project = get_project_by_id(db, project_id=project_id, user_id=user_id)
+    project = await get_project_by_id(db, project_id=project_id, user_id=user_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    delete_project(db, project)
+    await delete_project(db, project)

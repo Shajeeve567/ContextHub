@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.app.repositories.chunk_repository import get_chunks_for_user
 from api.app.services.embedding_service import STMEmbedding
@@ -12,12 +12,12 @@ def cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
     return sum(a * b for a, b in zip(vec_a, vec_b))
 
 
-def search_relevant_chunks(db: Session, user_id: str, question: str, top_k: int = 5) -> List[dict]:
+async def search_relevant_chunks(db: AsyncSession, user_id: str, question: str, top_k: int = 5) -> List[dict]:
 
     embedding = STMEmbedding()
 
     query_embedding = embedding.embed_query(question)
-    chunks = get_chunks_for_user(db, user_id)
+    chunks = await get_chunks_for_user(db, user_id)
 
     scored_results: List[dict] = []
 

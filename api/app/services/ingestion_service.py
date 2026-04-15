@@ -1,4 +1,6 @@
-from sqlalchemy.orm import Session
+import asyncio
+
+from sqlalchemy.ext.asyncio import AsyncSession
 from api.app.models.document import Document
 from api.app.repositories.chunk_repository import replace_chunks_for_document
 from api.app.repositories.document_repository import update_document_status
@@ -6,18 +8,18 @@ from api.app.services.chunking_service import SemanticChunker
 from api.app.services.embedding_service import STMEmbedding
 
 
-def process_document(db: Session, document: Document):
+async def process_document(db: AsyncSession, document: Document):
     chunker = SemanticChunker()
     embedder = STMEmbedding()
 
-    chunk_dicts = chunker.semantic_chunking(document.raw_content)
+    chunk_dicts = await asyncio.to_thread(chunker.semantic_chunking, document.raw_content)
 
     if not chunk_dicts:
-        update_document_status(db, document, "processed")
+        await update_document_status(db, document, "processed")
         return []
 
     chunk_texts = [chunk["chunk_text"] for chunk in chunk_dicts]
-    embeddings = embedder.embed_documents(chunk_texts)
+    embeddings = await asyncio.to_thread(embedder.embed_documents, chunk_texts)
 
     payloads = []
     for chunk_dict, embedding in zip(chunk_dicts, embeddings):
@@ -31,7 +33,7 @@ def process_document(db: Session, document: Document):
             }
         )
 
-    stored_chunks = replace_chunks_for_document(db, document.id, payloads)
-    update_document_status(db, document, "processed")
+    stored_chunks = await replace_chunks_for_document(db, document.id, payloads)
+    await update_document_status(db, document, "processed")
 
     return stored_chunks

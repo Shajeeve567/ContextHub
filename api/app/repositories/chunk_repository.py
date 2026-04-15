@@ -1,13 +1,15 @@
 from typing import List
 
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from api.app.models.chunk import Chunk
 from api.app.models.document import Document
 
 
-def replace_chunks_for_document(db: Session, document_id: str, chunk_payloads: List[dict]) -> List[Chunk]:
-    db.query(Chunk).filter(Chunk.document_id == document_id).delete(synchronize_session=False)
+async def replace_chunks_for_document(db: AsyncSession, document_id: str, chunk_payloads: List[dict]) -> List[Chunk]:
+    await db.execute(delete(Chunk).where(Chunk.document_id == document_id))
 
     chunks: List[Chunk] = []
     for payload in chunk_payloads:
@@ -22,29 +24,29 @@ def replace_chunks_for_document(db: Session, document_id: str, chunk_payloads: L
         chunks.append(chunk)
 
     db.add_all(chunks)
-    db.commit()
+    await db.commit()
 
     for chunk in chunks:
-        db.refresh(chunk)
+        await db.refresh(chunk)
 
     return chunks
 
 
-def get_chunks_for_user(db: Session, user_id: str) -> List[Chunk]:
-    return (
-        db.query(Chunk)
+async def get_chunks_for_user(db: AsyncSession, user_id: str) -> List[Chunk]:
+    result = await db.execute(
+        select(Chunk)
         .join(Document, Chunk.document_id == Document.id)
-        .options(joinedload(Chunk.document))
-        .filter(Document.user_id == user_id)
+        .options(selectinload(Chunk.document))
+        .where(Document.user_id == user_id)
         .order_by(Document.created_at.desc(), Chunk.chunk_index.asc())
-        .all()
     )
+    return list(result.scalars().all())
 
 
-def get_chunks_for_document(db: Session, document_id: str) -> List[Chunk]:
-    return (
-        db.query(Chunk)
-        .filter(Chunk.document_id == document_id)
+async def get_chunks_for_document(db: AsyncSession, document_id: str) -> List[Chunk]:
+    result = await db.execute(
+        select(Chunk)
+        .where(Chunk.document_id == document_id)
         .order_by(Chunk.chunk_index.asc())
-        .all()
     )
+    return list(result.scalars().all())

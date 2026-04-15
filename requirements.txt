@@ -1,5 +1,7 @@
 fastapi
 uvicorn
+SQLAlchemy
+aiosqlite
 langchain
 langchain-community
 faiss-cpu

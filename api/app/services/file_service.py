@@ -1,37 +1,39 @@
+import asyncio
 import uuid
+
 from api.app.repositories.document_repository import create_document_from_files
 from fastapi import UploadFile
 from api.app.models.document import Document
-from sqlalchemy.orm import Session
-import shutil
+from sqlalchemy.ext.asyncio import AsyncSession
 from langchain_community.document_loaders import PyPDFLoader
 import os
 
 UPLOAD_DIR = "uploads/"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+def _store_and_extract_pdf(file_bytes: bytes, file_path: str) -> tuple[int, str]:
+    with open(file_path, "wb") as buffer:
+        buffer.write(file_bytes)
+
+    file_size = os.path.getsize(file_path)
+    loader = PyPDFLoader(file_path)
+    raw_content = "\n".join([doc.page_content for doc in loader.load()])
+    return file_size, raw_content
+
+
 async def ingest_pdf(
-    db: Session,
+    db: AsyncSession,
     user_id: str,
     title: str,
     file: UploadFile,
 ) -> Document:
-    # 1. save raw file to disk
     file_name = file.filename
     file_path = f"{UPLOAD_DIR}{uuid.uuid4()}_{file_name}"
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    file_bytes = await file.read()
+    file_size, raw_content = await asyncio.to_thread(_store_and_extract_pdf, file_bytes, file_path)
 
-    # 2. get file size from saved file
-    file_size = os.path.getsize(file_path)
-
-    # 3. extract text
-    loader = PyPDFLoader(file_path)
-    raw_content = "\n".join([doc.page_content for doc in loader.load()])
-
-    # 4. store in db
-    document = create_document_from_files(
+    document = await create_document_from_files(
         db=db,
         user_id=user_id,
         title=title,

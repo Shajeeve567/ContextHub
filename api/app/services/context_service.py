@@ -1,4 +1,6 @@
-from sqlalchemy.orm import Session
+from typing import Optional
+
+from sqlalchemy.ext.asyncio import AsyncSession
 from api.app.repositories.project_repository import get_project_by_id
 from api.app.repositories.session_repository import (
     get_last_completed_session,
@@ -6,13 +8,13 @@ from api.app.repositories.session_repository import (
 )
 
 
-def get_project_context(db: Session, project_id: str, user_id: str) -> dict:
-    project = get_project_by_id(db, project_id=project_id, user_id=user_id)
+async def get_project_context(db: AsyncSession, project_id: str, user_id: str) -> Optional[dict]:
+    project = await get_project_by_id(db, project_id=project_id, user_id=user_id)
     if not project:
         return None
 
-    incomplete_sessions = get_incomplete_sessions(db, project_id=project_id, user_id=user_id)
-    last_session = get_last_completed_session(db, project_id=project_id, user_id=user_id)
+    incomplete_sessions = await get_incomplete_sessions(db, project_id=project_id, user_id=user_id)
+    last_session = await get_last_completed_session(db, project_id=project_id, user_id=user_id)
 
     return {
         "project": {

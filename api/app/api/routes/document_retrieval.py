@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.app.core.database import get_db
 from api.app.schemas.query import MemoryQueryRequest, MemoryQueryResponse, RetrievedChunk
@@ -10,15 +10,15 @@ router = APIRouter(prefix="/memory", tags=["memory"])
 
 
 @router.post("/ask", response_model=MemoryQueryResponse)
-def ask_memory_endpoint(payload: MemoryQueryRequest, db: Session = Depends(get_db)):
-    results = search_relevant_chunks(
+async def ask_memory_endpoint(payload: MemoryQueryRequest, db: AsyncSession = Depends(get_db)):
+    results = await search_relevant_chunks(
         db=db,
         user_id=payload.user_id,
         question=payload.question,
         top_k=payload.top_k,
     )
 
-    answer = generate_grounded_answer(payload.question, results)
+    answer = await generate_grounded_answer(payload.question, results)
 
     sources = [
         RetrievedChunk(

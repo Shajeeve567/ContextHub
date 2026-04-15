@@ -1,3 +1,4 @@
+import asyncio
 from typing import List
 from fastapi import HTTPException, status
 from openai import (
@@ -64,15 +65,15 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
 
 
 # input is dict comes from route endpoint
-def generate_context_handoff(context: dict) -> str:
+async def generate_context_handoff(context: dict) -> str:
     system_prompt, user_prompt = build_context_handoff_prompt(context)
-    return call_llm(system_prompt, user_prompt)
+    return await asyncio.to_thread(call_llm, system_prompt, user_prompt)
 
 
 
-def generate_grounded_answer(question: str, retrieval_results: List[dict]) -> str:
+async def generate_grounded_answer(question: str, retrieval_results: List[dict]) -> str:
     if not retrieval_results:
         return "I could not find anything relevant in your saved knowledge yet."
 
     system_prompt, user_prompt = build_grounded_answer_prompt(question, retrieval_results)
-    return call_llm(system_prompt, user_prompt)
+    return await asyncio.to_thread(call_llm, system_prompt, user_prompt)

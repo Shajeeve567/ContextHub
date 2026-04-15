@@ -1,10 +1,11 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from api.app.models.session import Session as SessionModel
 from api.app.schemas.session import SessionCreate, SessionComplete, SessionCheckpointUpdate
 
 
-def create_session(db: Session, payload: SessionCreate) -> SessionModel:
+async def create_session(db: AsyncSession, payload: SessionCreate) -> SessionModel:
     session = SessionModel(
         project_id=payload.project_id,
         user_id=payload.user_id,
@@ -13,62 +14,61 @@ def create_session(db: Session, payload: SessionCreate) -> SessionModel:
         checkpoint_reached="START",
     )
     db.add(session)
-    db.commit()
-    db.refresh(session)
+    await db.commit()
+    await db.refresh(session)
     return session
 
 
-def get_session_by_id(db: Session, session_id: str, user_id: str) -> Optional[SessionModel]:
-    return (
-        db.query(SessionModel)
-        .filter(SessionModel.id == session_id, SessionModel.user_id == user_id)
-        .first()
+async def get_session_by_id(db: AsyncSession, session_id: str, user_id: str) -> Optional[SessionModel]:
+    result = await db.execute(
+        select(SessionModel).where(SessionModel.id == session_id, SessionModel.user_id == user_id)
     )
+    return result.scalar_one_or_none()
 
 
-def list_sessions_for_project(db: Session, project_id: str, user_id: str) -> List[SessionModel]:
-    return (
-        db.query(SessionModel)
-        .filter(SessionModel.project_id == project_id, SessionModel.user_id == user_id)
+async def list_sessions_for_project(db: AsyncSession, project_id: str, user_id: str) -> List[SessionModel]:
+    result = await db.execute(
+        select(SessionModel)
+        .where(SessionModel.project_id == project_id, SessionModel.user_id == user_id)
         .order_by(SessionModel.created_at.desc())
-        .all()
     )
+    return list(result.scalars().all())
 
 
-def get_last_completed_session(db: Session, project_id: str, user_id: str) -> Optional[SessionModel]:
-    return (
-        db.query(SessionModel)
-        .filter(
+async def get_last_completed_session(db: AsyncSession, project_id: str, user_id: str) -> Optional[SessionModel]:
+    result = await db.execute(
+        select(SessionModel)
+        .where(
             SessionModel.project_id == project_id,
             SessionModel.user_id == user_id,
             SessionModel.status == "complete",
         )
         .order_by(SessionModel.created_at.desc())
-        .first()
     )
+    return result.scalar_one_or_none()
 
 
-def get_incomplete_sessions(db: Session, project_id: str, user_id: str) -> List[SessionModel]:
-    return (
-        db.query(SessionModel)
-        .filter(
+async def get_incomplete_sessions(db: AsyncSession, project_id: str, user_id: str) -> List[SessionModel]:
+    result = await db.execute(
+        select(SessionModel)
+        .where(
             SessionModel.project_id == project_id,
             SessionModel.user_id == user_id,
             SessionModel.status == "active",
         )
         .order_by(SessionModel.created_at.asc())
-        .all()
     )
+    return list(result.scalars().all())
 
 
-def update_checkpoint(db: Session, session: SessionModel, payload: SessionCheckpointUpdate) -> SessionModel:
+async def update_checkpoint(db: AsyncSession, session: SessionModel, payload: SessionCheckpointUpdate) -> SessionModel:
     session.checkpoint_reached = payload.checkpoint_reached
-    db.commit()
-    db.refresh(session)
+    await db.commit()
+    await db.refresh(session)
     return session
 
 
-def complete_session(db: Session, session: SessionModel, payload: SessionComplete) -> SessionModel:
+async def complete_session(db: AsyncSession, session: SessionModel, payload: SessionComplete) -> SessionModel:
     session.status = "complete"
     session.checkpoint_reached = "COMPLETE"
 
@@ -83,13 +83,13 @@ def complete_session(db: Session, session: SessionModel, payload: SessionComplet
     session.session_duration_minutes = payload.session_duration_minutes
     session.documents_referenced = payload.documents_referenced
 
-    db.commit()
-    db.refresh(session)
+    await db.commit()
+    await db.refresh(session)
     return session
 
 
-def mark_session_incomplete(db: Session, session: SessionModel) -> SessionModel:
+async def mark_session_incomplete(db: AsyncSession, session: SessionModel) -> SessionModel:
     session.status = "incomplete"
-    db.commit()
-    db.refresh(session)
+    await db.commit()
+    await db.refresh(session)
     return session

@@ -1,32 +1,46 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from typing import AsyncGenerator
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import declarative_base
 
 from api.app.core.config import settings
 
-connect_args = {}
-if settings.DATABASE_URL.startswith("sqlite"):
-    connect_args["check_same_thread"] = False
 
-engine = create_engine(
-    settings.DATABASE_URL,
-    future=True,
-    echo=False,
-    connect_args=connect_args,
-)
+def _build_async_database_url(database_url: str) -> str:
+    if database_url.startswith("postgresql+asyncpg://"):
+        return database_url
+    if database_url.startswith("postgresql+psycopg2://"):
+        return database_url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
+    if database_url.startswith("postgresql://"):
+        return database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if database_url.startswith("sqlite+aiosqlite://"):
+        return database_url
+    if database_url.startswith("sqlite:///"):
+        return database_url.replace("sqlite:///", "sqlite+aiosqlite:///", 1)
+    return database_url
 
-SessionLocal = sessionmaker(
+
+async_database_url = _build_async_database_url(settings.DATABASE_URL)
+
+engine = create_async_engine(async_database_url, echo=False)
+
+AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     autoflush=False,
-    autocommit=False,
     expire_on_commit=False,
 )
 
 Base = declarative_base()
 
 
-def get_db():
-    db = SessionLocal()
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    db = AsyncSessionLocal()
     try:
         yield db
     finally:
-        db.close()
+        await db.close()
+
+
+async def init_db() -> None:
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)

@@ -1,10 +1,11 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from api.app.models.project import Project
 from api.app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
 
 
-def create_project(db: Session, payload: ProjectCreate) -> Project:
+async def create_project(db: AsyncSession, payload: ProjectCreate) -> Project:
     project = Project(
         user_id=payload.user_id,
         name=payload.name,
@@ -13,29 +14,28 @@ def create_project(db: Session, payload: ProjectCreate) -> Project:
         status="active",
     )
     db.add(project)
-    db.commit()
-    db.refresh(project)
+    await db.commit()
+    await db.refresh(project)
     return project
 
 
-def get_project_by_id(db: Session, project_id: str, user_id: str) -> Optional[Project]:
-    return (
-        db.query(Project)
-        .filter(Project.id == project_id, Project.user_id == user_id)
-        .first()
+async def get_project_by_id(db: AsyncSession, project_id: str, user_id: str) -> Optional[Project]:
+    result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.user_id == user_id)
     )
+    return result.scalar_one_or_none()
 
 
-def list_projects_for_user(db: Session, user_id: str) -> List[Project]:
-    return (
-        db.query(Project)
-        .filter(Project.user_id == user_id)
+async def list_projects_for_user(db: AsyncSession, user_id: str) -> List[Project]:
+    result = await db.execute(
+        select(Project)
+        .where(Project.user_id == user_id)
         .order_by(Project.updated_at.desc())
-        .all()
     )
+    return list(result.scalars().all())
 
 
-def update_project(db: Session, project: Project, payload: ProjectUpdate) -> Project:
+async def update_project(db: AsyncSession, project: Project, payload: ProjectUpdate) -> Project:
     if payload.name is not None:
         project.name = payload.name
     if payload.description is not None:
@@ -44,11 +44,11 @@ def update_project(db: Session, project: Project, payload: ProjectUpdate) -> Pro
         project.current_goal = payload.current_goal
     if payload.status is not None:
         project.status = payload.status
-    db.commit()
-    db.refresh(project)
+    await db.commit()
+    await db.refresh(project)
     return project
 
 
-def delete_project(db: Session, project: Project) -> None:
+async def delete_project(db: AsyncSession, project: Project) -> None:
     db.delete(project)
-    db.commit()
+    await db.commit()
