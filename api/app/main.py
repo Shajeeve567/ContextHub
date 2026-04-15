@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from api.app.api.routes.documents import router as documents_router
 from api.app.models import chunk
 from api.app.api.routes.health import router as health_router
+from api.app.api.routes.context_retrieval import router as context_router 
 from api.app.api.routes.document_retrieval import router as retrieval_router
 from api.app.core.config import settings
 from api.app.core.database import Base, engine
@@ -21,6 +22,7 @@ def create_app() -> FastAPI:
 
     Base.metadata.create_all(bind=engine)
 
+    app.include_router(context_router)
     app.include_router(health_router)
     app.include_router(documents_router)
     app.include_router(retrieval_router)
