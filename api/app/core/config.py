@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     APP_NAME: str = "Personal Knowledge Memory API"
     OPENROUTER_API_KEY: SecretStr
-    MODEL_NAME: str = "openrouter/free"
+    MODEL_NAME: str = "google/gemma-4-31b-it:free"
     DATABASE_URL: str
 
 

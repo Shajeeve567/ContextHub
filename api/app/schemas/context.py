@@ -4,6 +4,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class LLMContext(BaseModel):
-    session_id: str
+    user_id: str
     project_id: str
     
