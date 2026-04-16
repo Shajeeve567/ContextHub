@@ -15,3 +15,5 @@ sentence-transformers
 langchain-openai
 asyncpg
 psycopg2
+requests
+mcp[cli]
