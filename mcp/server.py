@@ -42,6 +42,28 @@ def get_context(
 		"data": response.text,
 	}
 
+@mcp.tool()
+def get_health(timeout_seconds: float = 30.0) -> dict[str, Any]:
+	url = f"{api_base_url.rstrip('/')}/health"
+	response = requests.request(
+		method="GET",
+		url=url,
+		timeout=timeout_seconds,
+	)
+	response.raise_for_status()
+	content_type = response.headers.get("content-type", "")
+	if "application/json" in content_type:
+		return {
+			"ok": True,
+			"status_code": response.status_code,
+			"data": response.json(),
+		}
+	
+	return {
+		"ok": True,
+		"status_code": response.status_code,
+		"data": response.text,
+	}
 
 if __name__ == "__main__":
 	mcp.run()
