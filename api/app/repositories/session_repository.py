@@ -44,9 +44,9 @@ async def get_last_completed_session(db: AsyncSession, project_id: str, user_id:
             SessionModel.status == "complete",
         )
         .order_by(SessionModel.created_at.desc())
+        .limit(1)
     )
-    return result.scalar_one_or_none()
-
+    return result.scalars().first()
 
 async def get_incomplete_sessions(db: AsyncSession, project_id: str, user_id: str) -> List[SessionModel]:
     result = await db.execute(
