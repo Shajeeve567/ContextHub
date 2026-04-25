@@ -1,5 +1,6 @@
 from typing import Any
-import requests
+
+import httpx
 from mcp.server.fastmcp import FastMCP
 
 
@@ -8,10 +9,38 @@ mcp = FastMCP("contexthub-mcp")
 api_base_url = "http://127.0.0.1:8000"
 
 
+async def _request_json_or_text(
+    method: str,
+    url: str,
+    timeout_seconds: float,
+    **kwargs,
+) -> dict[str, Any]:
+    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            method=method,
+            url=url,
+            timeout=timeout_seconds,
+            **kwargs,
+        )
+
+    response.raise_for_status()
+    content_type = response.headers.get("content-type", "")
+    if "application/json" in content_type:
+        return {
+            "ok": True,
+            "status_code": response.status_code,
+            "data": response.json(),
+        }
+
+    return {
+        "ok": True,
+        "status_code": response.status_code,
+        "data": response.text,
+    }
 
 
 @mcp.resource("contexthub://protocol")
-def get_protocol() -> str:
+async def get_protocol() -> str:
     return """
 # ContextHub Operating Protocol
 
@@ -48,110 +77,109 @@ When the user says they are done, or naturally pauses work:
 """
 
 
-
-
 @mcp.tool()
-def get_context(
-	user_id: str,
-	project_id: str,
-	timeout_seconds: float = 30.0,
+async def get_context(
+    user_id: str,
+    project_id: str,
+    timeout_seconds: float = 50,
 ) -> dict[str, Any]:
-	"""
+    """
     ALWAYS call this before start_session.
     Returns the full project briefing including last session summary,
     pending tasks, decisions made, and what to continue working on.
     """
-	url = f"{api_base_url.rstrip('/')}/context"
-	payload = {"user_id": user_id, "project_id": project_id}
+    url = f"{api_base_url.rstrip('/')}/context"
+    payload = {"user_id": user_id, "project_id": project_id}
 
-	# The current API route accepts a Pydantic model in a GET handler.
-	# Send both query params and JSON body for maximum compatibility.
-	response = requests.request(
-		method="GET",
-		url=url,
-		params=payload,
-		json=payload,
-		timeout=timeout_seconds,
-	)
-	response.raise_for_status()
+    # The current API route accepts a Pydantic model in a GET handler.
+    # Send both query params and JSON body for maximum compatibility.
+    return await _request_json_or_text(
+        "GET",
+        url,
+        timeout_seconds,
+        params=payload,
+        json=payload,
+    )
 
-	content_type = response.headers.get("content-type", "")
-	if "application/json" in content_type:
-		return {
-			"ok": True,
-			"status_code": response.status_code,
-			"data": response.json(),
-		}
-
-	return {
-		"ok": True,
-		"status_code": response.status_code,
-		"data": response.text,
-	}
 
 @mcp.tool()
-def get_health(timeout_seconds: float = 30.0) -> dict[str, Any]:
-	"""
+async def get_health(timeout_seconds: float = 30.0) -> dict[str, Any]:
+    """
     This is to check the health of the project
     """
-	url = f"{api_base_url.rstrip('/')}/health"
-	response = requests.request(
-		method="GET",
-		url=url,
-		timeout=timeout_seconds,
-	)
-	response.raise_for_status()
-	content_type = response.headers.get("content-type", "")
-	if "application/json" in content_type:
-		return {
-			"ok": True,
-			"status_code": response.status_code,
-			"data": response.json(),
-		}
-
-	return {
-		"ok": True,
-		"status_code": response.status_code,
-		"data": response.text,
-	}
-
-
+    url = f"{api_base_url.rstrip('/')}/health"
+    return await _request_json_or_text("GET", url, timeout_seconds)
 
 
 @mcp.tool()
-def get_projects(user_id: str) -> dict:
-    """List all projects for a user."""
-    response = requests.get(f"{api_base_url}/projects", params={"user_id": user_id})
-    response.raise_for_status()
-    return {"ok": True, "data": response.json()}
-
-
-@mcp.tool()
-def start_session(project_id: str, user_id: str, llm_used: str = "unknown") -> dict:
-    """Start a new session for a project."""
-    response = requests.post(f"{api_base_url}/sessions", json={
-        "project_id": project_id,
-        "user_id": user_id,
-        "llm_used": llm_used
-    })
-    response.raise_for_status()
-    return {"ok": True, "data": response.json()}
-
-
-@mcp.tool()
-def update_checkpoint(session_id: str, user_id: str, checkpoint: str) -> dict:
-    """Mark a checkpoint as reached during the session."""
-    response = requests.patch(
-        f"{api_base_url}/sessions/{session_id}/checkpoint",
-        params={"user_id": user_id},
-        json={"checkpoint_reached": checkpoint}
+async def start_project(
+    user_id: str,
+    name: str,
+    description: str,
+    current_goal: str,
+) -> dict[str, Any]:
+    """Start a brand new project for the user"""
+    return await _request_json_or_text(
+        "POST",
+        f"{api_base_url}/projects",
+        30.0,
+        json={
+            "user_id": user_id,
+            "name": name,
+            "description": description,
+            "current_goal": current_goal,
+        },
     )
-    response.raise_for_status()
-    return {"ok": True, "data": response.json()}
 
 
 @mcp.tool()
-def complete_session(
+async def get_projects(user_id: str) -> dict[str, Any]:
+    """List all projects for a user."""
+    return await _request_json_or_text(
+        "GET",
+        f"{api_base_url}/projects",
+        30.0,
+        params={"user_id": user_id},
+    )
+
+
+@mcp.tool()
+async def start_session(
+    project_id: str,
+    user_id: str,
+    llm_used: str = "unknown",
+) -> dict[str, Any]:
+    """Start a new session for a project."""
+    return await _request_json_or_text(
+        "POST",
+        f"{api_base_url}/sessions",
+        30.0,
+        json={
+            "project_id": project_id,
+            "user_id": user_id,
+            "llm_used": llm_used,
+        },
+    )
+
+
+@mcp.tool()
+async def update_checkpoint(
+    session_id: str,
+    user_id: str,
+    checkpoint: str,
+) -> dict[str, Any]:
+    """Mark a checkpoint as reached during the session."""
+    return await _request_json_or_text(
+        "PATCH",
+        f"{api_base_url}/sessions/{session_id}/checkpoint",
+        30.0,
+        params={"user_id": user_id},
+        json={"checkpoint_reached": checkpoint},
+    )
+
+
+@mcp.tool()
+async def complete_session(
     session_id: str,
     user_id: str,
     worked_on: str,
@@ -162,10 +190,12 @@ def complete_session(
     next_session_briefing: str,
     llm_used: str = "unknown",
     session_duration_minutes: int = None,
-) -> dict:
+) -> dict[str, Any]:
     """Complete a session and write the structured session log back to ContextHub."""
-    response = requests.post(
+    return await _request_json_or_text(
+        "POST",
         f"{api_base_url}/sessions/{session_id}/complete",
+        30.0,
         params={"user_id": user_id},
         json={
             "summary": {
@@ -178,14 +208,10 @@ def complete_session(
             },
             "llm_used": llm_used,
             "session_duration_minutes": session_duration_minutes,
-            "documents_referenced": []
-        }
+            "documents_referenced": [],
+        },
     )
-    response.raise_for_status()
-    return {"ok": True, "data": response.json()}
-
-
 
 
 if __name__ == "__main__":
-	mcp.run()
+    mcp.run()

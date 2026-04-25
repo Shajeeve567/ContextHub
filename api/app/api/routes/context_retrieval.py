@@ -12,10 +12,11 @@ router = APIRouter(prefix="/context", tags=["context"])
 async def get_relevant_context(payload: LLMContext, db: AsyncSession = Depends(get_db)):
     context = await get_project_context(db, payload.project_id, payload.user_id) # Project + Session logs
     if context is None:
+        context = "There's no such project."
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
-    response = await generate_context_handoff(context)
-    return response
-
+    # response = await generate_context_handoff(context)
+    # return response
+    return context
 
 

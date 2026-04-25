@@ -16,4 +16,5 @@ langchain-openai
 asyncpg
 psycopg2
 requests
+httpx
 mcp[cli]
