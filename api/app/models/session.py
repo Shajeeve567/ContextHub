@@ -39,3 +39,10 @@ class Session(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
 
     project = relationship("Project", back_populates="sessions")
+    decision_rows = relationship("ProjectDecision", back_populates="session", cascade="all, delete-orphan")
+    memories = relationship("Memory", back_populates="session", cascade="all, delete-orphan")
+    interactions = relationship("Interaction", back_populates="session", cascade="all, delete-orphan", order_by="Interaction.created_at")
+
+    @property
+    def decisions(self):
+        return [d.decision_text for d in self.decision_rows]

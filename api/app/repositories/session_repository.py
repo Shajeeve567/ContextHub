@@ -2,6 +2,7 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.app.models.session import Session as SessionModel
+from api.app.models.project_decisions import ProjectDecision
 from api.app.schemas.session import SessionCreate, SessionComplete, SessionCheckpointUpdate
 
 
@@ -74,7 +75,16 @@ async def complete_session(db: AsyncSession, session: SessionModel, payload: Ses
 
     session.worked_on = payload.summary.worked_on
     session.progress = payload.summary.progress
-    session.decisions = payload.summary.decisions
+    # persist individual decision rows
+    for idx, d in enumerate(payload.summary.decisions or [], start=1):
+        pd = ProjectDecision(
+            session_id=session.id,
+            project_id=session.project_id,
+            user_id=session.user_id,
+            decision_text=d,
+            decision_order=idx,
+        )
+        db.add(pd)
     session.pending = payload.summary.pending
     session.blockers = payload.summary.blockers
     session.next_session_briefing = payload.summary.next_session_briefing
