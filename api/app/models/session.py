@@ -25,7 +25,6 @@ class Session(Base):
     # summary block — written by LLM at end of session
     worked_on = Column(Text, nullable=True)
     progress = Column(Text, nullable=True)
-    decisions = Column(JSON, nullable=False, default=list)
     pending = Column(JSON, nullable=False, default=list)
     blockers = Column(JSON, nullable=False, default=list)
     next_session_briefing = Column(Text, nullable=True)
