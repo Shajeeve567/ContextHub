@@ -1,5 +1,11 @@
+import asyncio
 from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.app.core.database import get_db
+from api.app.repositories.project_repository import get_project_by_id
 from api.app.repositories.session_repository import (
     create_session,
     get_session_by_id,
@@ -9,15 +15,13 @@ from api.app.repositories.session_repository import (
     complete_session,
     mark_session_incomplete,
 )
-from api.app.repositories.project_repository import get_project_by_id
 from api.app.schemas.session import (
     SessionCreate,
     SessionComplete,
     SessionCheckpointUpdate,
     SessionResponse,
 )
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from api.app.services.memory_service import MemoryService
 
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -28,7 +32,12 @@ async def start_session(payload: SessionCreate, db: AsyncSession = Depends(get_d
     project = await get_project_by_id(db, project_id=payload.project_id, user_id=payload.user_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    return await create_session(db, payload)
+    return await create_session(
+        db,
+        project_id=payload.project_id,
+        user_id=payload.user_id,
+        llm_used=payload.llm_used,
+    )
 
 
 @router.get("", response_model=List[SessionResponse])
@@ -73,7 +82,7 @@ async def update_session_checkpoint(
         raise HTTPException(status_code=404, detail="Session not found")
     if session.status != "active":
         raise HTTPException(status_code=400, detail="Cannot update checkpoint on a non-active session")
-    return await update_checkpoint(db, session, payload)
+    return await update_checkpoint(db, session, payload.checkpoint_reached)
 
 
 @router.post("/{session_id}/complete", response_model=SessionResponse)
@@ -88,7 +97,23 @@ async def complete_session_endpoint(
         raise HTTPException(status_code=404, detail="Session not found")
     if session.status != "active":
         raise HTTPException(status_code=400, detail="Session is already completed or incomplete")
-    return await complete_session(db, session, payload)
+
+    result = await complete_session(
+        db, session,
+        worked_on=payload.summary.worked_on,
+        progress=payload.summary.progress,
+        decisions=payload.summary.decisions,
+        pending=payload.summary.pending,
+        blockers=payload.summary.blockers,
+        next_session_briefing=payload.summary.next_session_briefing,
+        llm_used=payload.llm_used,
+        session_duration_minutes=payload.session_duration_minutes,
+        documents_referenced=payload.documents_referenced,
+    )
+
+    asyncio.create_task(MemoryService().extract_memories_from_session(session_id))
+
+    return result
 
 
 @router.patch("/{session_id}/abandon", response_model=SessionResponse)

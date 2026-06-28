@@ -10,6 +10,7 @@ from api.app.core.database import init_db
 
 from api.app.api.routes.projects import router as projects_router
 from api.app.api.routes.sessions import router as sessions_router
+from api.app.api.routes.memories import router as memories_router
 from api.app import models as _models  # noqa: F401
 
 
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
     app.include_router(retrieval_router)
     app.include_router(projects_router)
     app.include_router(sessions_router)
+    app.include_router(memories_router)
 
     return app
 

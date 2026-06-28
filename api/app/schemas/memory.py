@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class MemoryCreate(BaseModel):
     user_id: str = Field(..., min_length=1)
+    project_id: Optional[str] = None
     session_id: Optional[str] = None
     memory_type: str = Field(..., min_length=1, max_length=30)
     content: str = Field(..., min_length=1)
@@ -18,6 +19,7 @@ class MemoryResponse(BaseModel):
 
     id: str
     user_id: str
+    project_id: Optional[str] = None
     session_id: Optional[str] = None
     memory_type: str
     content: str

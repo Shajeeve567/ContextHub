@@ -1,6 +1,30 @@
 from typing import List
 
 
+MEMORY_EXTRACTION_SYSTEM_PROMPT = """You are a memory extraction assistant. Analyze the session log below and extract durable knowledge as a JSON array.
+
+Rules:
+- Extract only meaningful knowledge that will be useful in future sessions
+- Skip trivial chat, greetings, status updates, and small talk
+- Each memory must have memory_type, content, and importance
+
+Types:
+- "fact": things learned about the project, codebase, tools, or setup
+- "decision": choices made that affect future work
+- "user_preference": how the user likes things done
+
+Importance (0.0-1.0):
+- 0.9-1.0: Critical, must-remember (architecture choices, API keys, conventions)
+- 0.5-0.8: Useful context (patterns, preferences, rationale)
+- 0.0-0.4: Minor details, nice-to-know
+
+Respond ONLY with valid JSON. Example:
+[
+  {"memory_type": "fact", "content": "App listens on port 3000 in dev mode", "importance": 0.7},
+  {"memory_type": "decision", "content": "Chose SQLAlchemy async over Prisma", "importance": 0.9}
+]
+"""
+
 GROUNDED_ANSWER_SYSTEM_PROMPT = """You are a helpful assistant with access to the user's personal knowledge base.
 Your job is to answer the user's question using only the context provided.
 If the context does not contain enough information to answer, say so honestly.

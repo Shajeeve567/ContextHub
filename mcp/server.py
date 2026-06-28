@@ -56,7 +56,8 @@ You MUST follow this protocol for every session without being asked.
 
 ## DURING THE SESSION
 - When a meaningful task completes, call update_checkpoint
-- When the user makes a significant decision, note it internally for the session log
+- When you learn something important about the user or project, call remember to store it
+- When you need to recall stored knowledge, call recall to search memories
 - A meaningful task is anything that moves the project forward — not every message
 
 ## ON SESSION END
@@ -210,6 +211,55 @@ async def complete_session(
             "session_duration_minutes": session_duration_minutes,
             "documents_referenced": [],
         },
+    )
+
+
+@mcp.tool()
+async def remember(
+    user_id: str,
+    content: str,
+    memory_type: str,
+    importance: float = 0.5,
+) -> dict[str, Any]:
+    """Store a new memory (fact, decision, or user_preference).
+    Use this when you learn something important about the user or project.
+    Example: remember('user_id', 'Uses pytest over unittest', 'user_preference', 0.8)"""
+    return await _request_json_or_text(
+        "POST",
+        f"{api_base_url}/memories",
+        30.0,
+        json={
+            "user_id": user_id,
+            "content": content,
+            "memory_type": memory_type,
+            "importance": importance,
+            "source": "explicit",
+        },
+    )
+
+
+@mcp.tool()
+async def recall(
+    user_id: str,
+    query: str,
+    top_k: int = 10,
+) -> dict[str, Any]:
+    """Search your stored memories. Returns relevant facts, decisions, and user preferences."""
+    return await _request_json_or_text(
+        "GET",
+        f"{api_base_url}/memories/search",
+        30.0,
+        params={"user_id": user_id, "q": query, "top_k": str(top_k)},
+    )
+
+
+@mcp.tool()
+async def forget(memory_id: str) -> dict[str, Any]:
+    """Delete a specific memory by its ID."""
+    return await _request_json_or_text(
+        "DELETE",
+        f"{api_base_url}/memories/{memory_id}",
+        30.0,
     )
 
 
