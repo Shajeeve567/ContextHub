@@ -20,7 +20,7 @@ class Session(Base):
 
     # session state
     status = Column(String(50), nullable=False, default="active")  # active, incomplete, complete
-    checkpoint_reached = Column(String(50), nullable=False, default="START")
+    checkpoint_reached = Column(Text, nullable=False, default="START")
 
     # summary block — written by LLM at end of session
     worked_on = Column(Text, nullable=True)

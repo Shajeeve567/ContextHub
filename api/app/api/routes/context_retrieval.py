@@ -8,7 +8,7 @@ from api.app.schemas.context import LLMContext
 
 router = APIRouter(prefix="/context", tags=["context"])
 
-@router.get("")
+@router.post("")
 async def get_relevant_context(payload: LLMContext, db: AsyncSession = Depends(get_db)):
     context = await get_project_context(db, payload.project_id, payload.user_id) # Project + Session logs
     if context is None:

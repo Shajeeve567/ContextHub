@@ -92,13 +92,10 @@ async def get_context(
     url = f"{api_base_url.rstrip('/')}/context"
     payload = {"user_id": user_id, "project_id": project_id}
 
-    # The current API route accepts a Pydantic model in a GET handler.
-    # Send both query params and JSON body for maximum compatibility.
     return await _request_json_or_text(
-        "GET",
+        "POST",
         url,
         timeout_seconds,
-        params=payload,
         json=payload,
     )
 
