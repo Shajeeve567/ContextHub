@@ -13,9 +13,9 @@ from api.app.repositories import session_repository as session_repo
 from api.app.repositories import interaction_repository
 from api.app.schemas.memory import MemoryCreate, MemorySearchResult
 from api.app.schemas.memory import MemoryResponse
-from api.app.services.embedding_service import STMEmbedding
-from api.app.services.llm_service import call_llm
-from api.app.services.prompt_service import MEMORY_EXTRACTION_SYSTEM_PROMPT
+from api.app.services.infrastructure.embedding_service import STMEmbedding
+from api.app.services.infrastructure.llm_service import call_llm
+from api.app.services.infrastructure.prompt_service import MEMORY_EXTRACTION_SYSTEM_PROMPT
 
 
 class MemoryService:

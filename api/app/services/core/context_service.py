@@ -7,7 +7,7 @@ from api.app.repositories.session_repository import (
     get_last_completed_session,
     get_incomplete_sessions,
 )
-from api.app.services.memory_service import MemoryService
+from api.app.services.core.memory_service import MemoryService
 
 
 async def get_project_context(db: AsyncSession, project_id: str, user_id: str) -> Optional[dict]:

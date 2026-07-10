@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.app.models.document import Document
 from api.app.repositories.chunk_repository import replace_chunks_for_document
 from api.app.repositories.document_repository import update_document_status
-from api.app.services.chunking_service import SemanticChunker
-from api.app.services.embedding_service import STMEmbedding
+from api.app.services.documents.chunking_service import SemanticChunker
+from api.app.services.infrastructure.embedding_service import STMEmbedding
 
 
 async def process_document(db: AsyncSession, document: Document):

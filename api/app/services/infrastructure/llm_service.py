@@ -11,7 +11,7 @@ from openai import (
     RateLimitError,
 )
 from api.app.core.config import settings
-from api.app.services.prompt_service import build_grounded_answer_prompt, build_context_handoff_prompt
+from api.app.services.infrastructure.prompt_service import build_grounded_answer_prompt, build_context_handoff_prompt
 
 client = OpenAI(
     api_key=settings.OPENROUTER_API_KEY.get_secret_value(),

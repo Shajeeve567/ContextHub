@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.app.core.database import get_db
 from api.app.schemas.query import MemoryQueryRequest, MemoryQueryResponse, RetrievedChunk
-from api.app.services.llm_service import generate_grounded_answer
-from api.app.services.retrieval_service import search_relevant_chunks
+from api.app.services.infrastructure.llm_service import generate_grounded_answer
+from api.app.services.documents.retrieval_service import search_relevant_chunks
 
 router = APIRouter(prefix="/memory", tags=["memory"])
 

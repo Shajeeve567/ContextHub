@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.app.core.database import get_db
 from api.app.schemas.memory import MemoryCreate, MemoryResponse, MemorySearchResult
-from api.app.services.memory_service import MemoryService
+from api.app.services.core.memory_service import MemoryService
 
 router = APIRouter(prefix="/memories", tags=["memories"])
 

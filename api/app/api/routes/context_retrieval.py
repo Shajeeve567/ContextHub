@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.app.core.database import get_db
-from api.app.services.context_service import get_project_context
-from api.app.services.llm_service import generate_context_handoff
+from api.app.services.core.context_service import get_project_context
+from api.app.services.infrastructure.llm_service import generate_context_handoff
 from api.app.schemas.context import LLMContext
 
 

@@ -10,8 +10,8 @@ from api.app.repositories.document_repository import (
     list_documents_for_user,
 )
 from api.app.schemas.document import DocumentCreate, DocumentProcessResponse, DocumentResponse, DocumentCreateFromFile
-from api.app.services.ingestion_service import process_document
-from api.app.services.file_service import ingest_pdf
+from api.app.services.documents.ingestion_service import process_document
+from api.app.services.documents.file_service import ingest_pdf
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 

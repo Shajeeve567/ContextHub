@@ -21,7 +21,7 @@ from api.app.schemas.session import (
     SessionCheckpointUpdate,
     SessionResponse,
 )
-from api.app.services.memory_service import MemoryService
+from api.app.services.core.memory_service import MemoryService
 
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
