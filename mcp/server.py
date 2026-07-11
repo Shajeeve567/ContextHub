@@ -1,12 +1,17 @@
 from typing import Any
-
+from dotenv import load_dotenv
 import httpx
 from mcp.server.fastmcp import FastMCP
-
+import os
 
 mcp = FastMCP("contexthub-mcp")
+load_dotenv()
+api_base_url = os.getenv("MCP_URL")
 
-api_base_url = "http://127.0.0.1:8000"
+if not api_base_url:
+    raise ValueError("MCP_SERVER_URL is not set in the environment")
+
+print(f"Connecting to MCP server at: {api_base_url}")
 
 
 async def _request_json_or_text(
