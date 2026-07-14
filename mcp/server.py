@@ -6,7 +6,7 @@ import os
 
 mcp = FastMCP("contexthub-mcp")
 load_dotenv()
-api_base_url = os.getenv("MCP_URL")
+api_base_url = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 
 if not api_base_url:
     raise ValueError("MCP_SERVER_URL is not set in the environment")
