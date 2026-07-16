@@ -14,3 +14,5 @@ langchain-core
 langchain_community
 langchain-openai
 langchain-google-genai
+alembic
+psycopg2-binary

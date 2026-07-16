@@ -26,4 +26,4 @@ ENV HF_HOME=/model-cache
 EXPOSE 8000
 
 # Start application
-CMD ["uvicorn", "api.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn api.app.main:app --host 0.0.0.0 --port 8000"]

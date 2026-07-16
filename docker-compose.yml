@@ -38,10 +38,11 @@ services:
 
     env_file:
       - .env
-
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       HF_HOME: /model-cache
+      TRANSFORMERS_CACHE: /model-cache
+      SENTENCE_TRANSFORMERS_HOME: /model-cache
 
     ports:
       - "8000:8000"
