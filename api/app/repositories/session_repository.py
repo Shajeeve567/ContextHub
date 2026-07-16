@@ -11,6 +11,17 @@ from api.app.models.session import Session as SessionModel
 _SESSION_BASE = select(SessionModel).options(selectinload(SessionModel.decision_rows))
 
 
+async def _mark_other_active_sessions_incomplete(db: AsyncSession, project_id: str, user_id: str) -> None | bool:
+    sessions = list_sessions_for_project(db, project_id, user_id)
+
+    if len(sessions == 0): return False
+
+    for session in sessions:
+        if session.status == "active":
+            mark_session_incomplete(db, session=session)
+    return True
+
+
 async def create_session(
     db: AsyncSession,
     project_id: str,
@@ -24,6 +35,9 @@ async def create_session(
         status="active",
         checkpoint_reached="START",
     )
+    # reseting previous active sessions to incomplete
+    _mark_other_active_sessions_incomplete(db, project_id, user_id)
+
     db.add(session)
     await db.commit()
     await db.refresh(session)
