@@ -63,6 +63,7 @@ def upgrade() -> None:
         sa.Column('decision_text', sa.Text(), nullable=False),
         sa.Column('decision_order', sa.Integer(), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint('id'),
     )
     op.create_index('ix_project_decisions_session_id', 'project_decisions', ['session_id'])
