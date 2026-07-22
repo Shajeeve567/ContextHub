@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="contexthub_header.png" alt="ContextHub - Persistent Memory for AI-Assisted Work" width="100%">
+  <img src="./assets/contexthub_header.png" alt="ContextHub - Persistent Memory for AI-Assisted Work" width="100%">
 </p>
 
 # ContextHub
